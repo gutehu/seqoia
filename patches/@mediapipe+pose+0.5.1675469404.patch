@@ -1,0 +1,49 @@
+diff --git a/node_modules/@mediapipe/pose/pose_solution_packed_assets_loader.js b/node_modules/@mediapipe/pose/pose_solution_packed_assets_loader.js
+index 6378cd8..1ec0c5f 100644
+--- a/node_modules/@mediapipe/pose/pose_solution_packed_assets_loader.js
++++ b/node_modules/@mediapipe/pose/pose_solution_packed_assets_loader.js
+@@ -46,29 +46,28 @@ var REMOTE_PACKAGE_SIZE = metadata['remote_package_size'];
+           var url = packageName;
+           var size = packageSize;
+           if (event.total) size = event.total;
++          if (!Module.dataFileDownloads) Module.dataFileDownloads = {};
++          if (!Module.dataFileDownloads[url]) {
++            Module.dataFileDownloads[url] = { loaded: 0, total: size };
++          }
+           if (event.loaded) {
+-            if (!xhr.addedTotal) {
+-              xhr.addedTotal = true;
+-              if (!Module.dataFileDownloads) Module.dataFileDownloads = {};
+-              Module.dataFileDownloads[url] = {
+-                loaded: event.loaded,
+-                total: size
+-              };
+-            } else {
+-              Module.dataFileDownloads[url].loaded = event.loaded;
+-            }
++            if (!xhr.addedTotal) xhr.addedTotal = true;
++            Module.dataFileDownloads[url].loaded = event.loaded;
++            Module.dataFileDownloads[url].total = size;
+             var total = 0;
+             var loaded = 0;
+             var num = 0;
+             for (var download in Module.dataFileDownloads) {
+-            var data = Module.dataFileDownloads[download];
+-              total += data.total;
+-              loaded += data.loaded;
+-              num++;
++              var data = Module.dataFileDownloads[download];
++              if (data) {
++                total += data.total;
++                loaded += data.loaded;
++                num++;
++              }
+             }
+-            total = Math.ceil(total * Module.expectedDataFileDownloads/num);
++            total = num ? Math.ceil(total * Module.expectedDataFileDownloads/num) : total;
+             if (Module['setStatus']) Module['setStatus']('Downloading data... (' + loaded + '/' + total + ')');
+-          } else if (!Module.dataFileDownloads) {
++          } else {
+             if (Module['setStatus']) Module['setStatus']('Downloading data...');
+           }
+         };
